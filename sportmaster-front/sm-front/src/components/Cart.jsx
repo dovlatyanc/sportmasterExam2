@@ -1,65 +1,229 @@
+// src/components/Cart.jsx
 import { useState, useEffect } from 'react';
-import { getCart, removeFromCart, createOrder, createGuestOrder } from '../api/api';
+import * as api from '../api/api';
 
 const Cart = () => {
-  const [cartItems, setCartItems] = useState([]);
-  const [isGuest, setIsGuest] = useState(false);
-  const [guestForm, setGuestForm] = useState({ fullName: '', email: '', phone: '', city: '', country: '' });
+  const [cart, setCart] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     loadCart();
   }, []);
 
   const loadCart = async () => {
-    const items = await getCart();
-    setCartItems(items);
+    try {
+      const data = await api.getCart();
+      console.log('Получена корзина:', data);
+      setCart(data);
+      setError('');
+    } catch (err) {
+      console.error('Ошибка загрузки корзины:', err);
+      
+      if (err.message.includes('401')) {
+        setError('Для просмотра корзины нужно войти в систему');
+      } else {
+        setError('Ошибка загрузки корзины');
+      }
+      
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleRemove = async (productId) => {
-    await removeFromCart(productId);
-    loadCart();
+    try {
+      await api.removeFromCart(productId);
+      await loadCart(); // Перезагружаем
+    } catch (err) {
+      console.error('Ошибка удаления:', err);
+      setError('Не удалось удалить товар');
+    }
   };
 
-  const handleOrder = async () => {
-    if (isGuest) {
-      const guestData = {
-        ...guestForm,
-        items: cartItems.map(item => ({ productId: item.product.id, quantity: item.quantity }))
-      };
-      await createGuestOrder(guestData);
-      alert('Гостевой заказ оформлен');
-    } else {
-      await createOrder();
-      alert('Заказ оформлен');
+  const handleUpdateQuantity = async (productId, newQuantity) => {
+    try {
+      if (newQuantity < 1) {
+        await handleRemove(productId);
+        return;
+      }
+      
+      // Обновляем через PUT или через удаление/добавление
+      try {
+        await api.updateCartItem(productId, newQuantity);
+      } catch {
+        // Если PUT не работает, удаляем и добавляем
+        await api.removeFromCart(productId);
+        await api.addToCart(productId, newQuantity);
+      }
+      
+      await loadCart();
+    } catch (err) {
+      console.error('Ошибка обновления:', err);
+      setError('Не удалось обновить количество');
     }
-    setCartItems([]);
   };
+
+  const total = cart.reduce((sum, item) => 
+    sum + (item.product.price * item.quantity), 0);
+
+  if (loading) {
+    return <div style={{ padding: '20px', textAlign: 'center' }}>Загрузка корзины...</div>;
+  }
+
+  if (error) {
+    return (
+      <div style={{ padding: '20px' }}>
+        <h2>Корзина</h2>
+        <div style={{ 
+          background: '#fff3cd', 
+          padding: '15px',
+          borderRadius: '5px'
+        }}>
+          <p style={{ margin: 0 }}>{error}</p>
+          <div style={{ marginTop: '10px' }}>
+            <button
+              onClick={() => window.location.href = '/login'}
+              style={{ marginRight: '10px', padding: '8px 16px' }}
+            >
+              Войти
+            </button>
+            <button
+              onClick={() => window.location.href = '/'}
+              style={{ padding: '8px 16px' }}
+            >
+              К товарам
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div>
+    <div style={{ padding: '20px' }}>
       <h1>Корзина</h1>
-      <label>
-        <input type="checkbox" checked={isGuest} onChange={(e) => setIsGuest(e.target.checked)} />
-        Оформить как гость
-      </label>
-      {isGuest && (
-        <div>
-          <input placeholder="ФИО" value={guestForm.fullName} onChange={(e) => setGuestForm({...guestForm, fullName: e.target.value})} />
-          <input placeholder="Email" value={guestForm.email} onChange={(e) => setGuestForm({...guestForm, email: e.target.value})} />
-          <input placeholder="Телефон" value={guestForm.phone} onChange={(e) => setGuestForm({...guestForm, phone: e.target.value})} />
-          <input placeholder="Город" value={guestForm.city} onChange={(e) => setGuestForm({...guestForm, city: e.target.value})} />
-          <input placeholder="Страна" value={guestForm.country} onChange={(e) => setGuestForm({...guestForm, country: e.target.value})} />
+      
+      {cart.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '40px' }}>
+          <p>Корзина пуста</p>
+          <button
+            onClick={() => window.location.href = '/'}
+            style={{ padding: '10px 20px', marginTop: '10px' }}
+          >
+            Перейти к товарам
+          </button>
         </div>
+      ) : (
+        <>
+          {/* Список товаров */}
+          {cart.map(item => (
+            <div key={item.id} style={{ 
+              border: '1px solid #ddd',
+              padding: '15px',
+              marginBottom: '15px',
+              borderRadius: '8px'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <h3 style={{ margin: '0 0 5px 0' }}>{item.product.name}</h3>
+                  <p style={{ margin: '0 0 5px 0', color: '#666' }}>
+                    {item.product.brand} • {item.product.color} • Размер: {item.product.size}
+                  </p>
+                  <p style={{ margin: 0, fontSize: '20px', fontWeight: 'bold' }}>
+                    {item.product.price.toLocaleString('ru-RU')} ₽
+                  </p>
+                </div>
+                
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                    <button
+                      onClick={() => handleUpdateQuantity(item.product.id, item.quantity - 1)}
+                      style={{ width: '30px', height: '30px' }}
+                    >
+                      -
+                    </button>
+                    <span style={{ fontSize: '18px', fontWeight: 'bold' }}>{item.quantity}</span>
+                    <button
+                      onClick={() => handleUpdateQuantity(item.product.id, item.quantity + 1)}
+                      style={{ width: '30px', height: '30px' }}
+                    >
+                      +
+                    </button>
+                  </div>
+                  
+                  <button
+                    onClick={() => handleRemove(item.product.id)}
+                    style={{
+                      padding: '5px 10px',
+                      background: '#dc3545',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px'
+                    }}
+                  >
+                    Удалить
+                  </button>
+                </div>
+              </div>
+              
+              <div style={{ 
+                marginTop: '10px', 
+                paddingTop: '10px',
+                borderTop: '1px solid #eee',
+                textAlign: 'right'
+              }}>
+                <strong>Сумма: {(item.product.price * item.quantity).toLocaleString('ru-RU')} ₽</strong>
+              </div>
+            </div>
+          ))}
+          
+          {/* Итого */}
+          <div style={{ 
+            background: '#f8f9fa',
+            padding: '20px',
+            borderRadius: '8px',
+            textAlign: 'right',
+            marginTop: '20px'
+          }}>
+            <h2 style={{ margin: '0 0 15px 0' }}>
+              Итого: {total.toLocaleString('ru-RU')} ₽
+            </h2>
+            
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => window.location.href = '/'}
+                style={{
+                  padding: '10px 20px',
+                  background: '#6c757d',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '5px'
+                }}
+              >
+                Продолжить покупки
+              </button>
+              
+              <button
+                onClick={() => {
+                  // TODO: Оформление заказа
+                  alert('Оформление заказа (в разработке)');
+                }}
+                style={{
+                  padding: '10px 20px',
+                  background: '#28a745',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '5px',
+                  fontSize: '16px'
+                }}
+              >
+                Оформить заказ
+              </button>
+            </div>
+          </div>
+        </>
       )}
-      <ul>
-        {cartItems.map(item => (
-          <li key={item.id}>
-            {item.product.name} - {item.quantity} шт.
-            <button onClick={() => handleRemove(item.product.id)}>Удалить</button>
-          </li>
-        ))}
-      </ul>
-      <button onClick={handleOrder} disabled={cartItems.length === 0}>Оформить заказ</button>
     </div>
   );
 };

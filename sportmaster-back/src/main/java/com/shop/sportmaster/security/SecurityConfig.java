@@ -29,7 +29,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(
+                        .requestMatchers( "/categories",
+                                "/categories/**",
                                 "/products/**",
                                 "/auth/**"
                         ).permitAll()
@@ -37,7 +38,19 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form.disable())
-                .httpBasic(httpBasic -> httpBasic.disable());
+                .httpBasic(httpBasic -> httpBasic.disable())
+                .logout(logout -> logout
+                        .logoutUrl("/auth/logout")
+                        .deleteCookies("JSESSIONID")
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
+                        .permitAll()
+                        .logoutSuccessHandler((request,
+                                               response,
+                                               authentication) -> {
+                            response.setStatus(200);
+                        })
+                );
 
         return http.build();
     }

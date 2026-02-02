@@ -37,9 +37,8 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletRequest httpRequest) {
-        User user = authService.login(request); // должен бросать исключение при ошибке
+        User user = authService.login(request);
 
-        // 🔑 Аутентифицируем пользователя в Spring Security
         authenticateUser(user.getEmail(), httpRequest);
 
         return ResponseEntity.ok().build();
@@ -63,4 +62,5 @@ public class AuthController {
                 context
         );
     }
+
 }

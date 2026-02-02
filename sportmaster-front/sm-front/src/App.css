@@ -1,42 +1,507 @@
+/* App.css - Полный сброс и базовые стили */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
 #root {
-  max-width: 1280px;
+  width: 100%;
+  height: 100%;
+}
+
+.app {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: white;
+}
+
+/* Навигация - НА ВСЮ ШИРИНУ */
+.nav {
+  width: 100%;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.nav-container {
+  width: 100%;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #111827;
+  text-decoration: none;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
+.nav-links {
+  display: flex;
+  gap: 2rem;
+}
+
+.nav-links a {
+  color: #374151;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.nav-links a:hover {
+  color: #111827;
+}
+
+.nav-auth {
+  display: flex;
+  gap: 1rem;
+}
+
+.nav-auth a {
+  color: #374151;
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: color 0.2s;
+}
+
+.nav-auth a:hover {
+  color: #111827;
+}
+
+/* Основной контент - занимает всё пространство */
+.main {
+  flex: 1;
+  width: 100%;
+}
+
+/* Главная страница - НА ВСЮ ШИРИНУ */
+.home-page {
+  width: 100%;
+}
+
+/* Герой секция - НА ВСЮ ШИРИНУ */
+.hero {
+  width: 100%;
+  background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+  color: white;
+  padding: 6rem 1rem;
+  text-align: center;
+}
+
+.hero-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.hero h1 {
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 1.5rem;
+  line-height: 1.2;
+}
+
+.hero p {
+  font-size: 1.25rem;
+  color: #cbd5e0;
+  margin-bottom: 3rem;
+  max-width: 600px;
+  margin: 0 auto 3rem;
+}
+
+.hero-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 1rem 2.5rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s;
+  border: 2px solid transparent;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  display: inline-block;
+  text-align: center;
+  min-width: 200px;
+}
+
+.btn-primary {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
+}
+
+.btn-secondary {
+  border-color: white;
+  color: white;
+  background: transparent;
+}
+
+.btn-secondary:hover {
+  background: white;
+  color: #1a202c;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(255, 255, 255, 0.2);
+}
+
+/* Основной контейнер */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+}
+
+/* Категории */
+.categories {
+  margin-bottom: 5rem;
+}
+
+.categories h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 3rem;
+  text-align: center;
+}
+
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  width: 100%;
+}
+
+.category-card {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 1rem;
+  padding: 2rem;
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s;
+}
+
+.category-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+  border-color: #ef4444;
+}
+
+.category-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.category-card h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.category-card p {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+/* Товары */
+.products {
+  margin-bottom: 5rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3rem;
+  width: 100%;
+}
+
+.section-header h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.view-all {
+  color: #ef4444;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1.125rem;
+}
+
+.view-all:hover {
+  text-decoration: underline;
+}
+
+.products-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  width: 100%;
+}
+
+.product-card {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 1rem;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+  border-color: #ef4444;
+}
+
+.product-image {
+  width: 100%;
+  height: 250px;
+  background: linear-gradient(135deg, #f87171 0%, #fb923c 100%);
+}
+
+.product-info {
+  padding: 1.5rem;
+}
+
+.product-info h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 1rem;
+  min-height: 3rem;
+}
+
+.product-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.price {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.add-to-cart {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 1rem;
+}
+
+.add-to-cart:hover {
+  background: #dc2626;
+  transform: scale(1.05);
+}
+
+/* Преимущества */
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 3rem;
+  padding: 4rem 0;
+  border-top: 2px solid #e5e7eb;
+  width: 100%;
+}
+
+.feature {
+  text-align: center;
+  padding: 2rem;
+}
+
+.feature-icon {
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.feature h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.feature p {
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+/* Футер - НА ВСЮ ШИРИНУ */
+.footer {
+  width: 100%;
+  background: #111827;
+  color: white;
+  margin-top: auto;
+}
+
+.footer-content {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2rem;
+}
+
+.footer-logo {
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
+.footer-links {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.footer-links a {
+  color: #d1d5db;
+  text-decoration: none;
+  transition: color 0.2s;
+  font-size: 0.875rem;
+}
+
+.footer-links a:hover {
+  color: white;
+}
+
+.footer-copyright {
+  width: 100%;
+  text-align: center;
+  padding: 1.5rem;
+  color: #9ca3af;
+  font-size: 0.875rem;
+  border-top: 1px solid #374151;
+}
+
+/* Адаптивность */
+@media (max-width: 1024px) {
+  .hero h1 {
+    font-size: 2.5rem;
   }
-  to {
-    transform: rotate(360deg);
+  
+  .container {
+    padding: 3rem 1.5rem;
   }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
+@media (max-width: 768px) {
+  .nav-container {
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1rem;
+  }
+  
+  .nav-links {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+  }
+  
+  .nav-auth {
+    margin-top: 0.5rem;
+  }
+  
+  .hero {
+    padding: 4rem 1rem;
+  }
+  
+  .hero h1 {
+    font-size: 2rem;
+  }
+  
+  .hero p {
+    font-size: 1rem;
+    margin-bottom: 2rem;
+  }
+  
+  .hero-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .btn {
+    width: 100%;
+    max-width: 300px;
+  }
+  
+  .section-header {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .categories-grid,
+  .products-list {
+    grid-template-columns: 1fr;
+  }
+  
+  .features {
+    grid-template-columns: 1fr;
+  }
+  
+  .footer-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 1.5rem;
+  }
+  
+  .footer-links {
+    justify-content: center;
   }
 }
 
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
+@media (max-width: 480px) {
+  .hero h1 {
+    font-size: 1.75rem;
+  }
+  
+  .container {
+    padding: 2rem 1rem;
+  }
+  
+  .categories h2,
+  .section-header h2 {
+    font-size: 2rem;
+  }
 }

@@ -9,6 +9,7 @@ import com.shop.sportmaster.repository.UserRepository;
 import com.shop.sportmaster.service.CartService;
 import com.shop.sportmaster.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -51,5 +52,15 @@ public class CartController {
     public void clear(Authentication authentication) {
         User user = userService.getCurrentUser(authentication);
         cartService.clearCart(user);
+    }
+    @PutMapping("/update")
+    public ResponseEntity<?> updateCartItem(
+            @RequestParam Long productId,
+            @RequestParam int quantity,
+            Authentication authentication
+    ) {
+        User user = userService.getCurrentUser(authentication);
+        cartService.updateCartItem(user, productId, quantity);
+        return ResponseEntity.ok().build();
     }
 }

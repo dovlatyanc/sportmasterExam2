@@ -1,15 +1,22 @@
 const API_URL = "http://localhost:8080";
 
-const fetchWithAuth = (url, options = {}) => 
-  fetch(url, { ...options, credentials: 'include' });
+const fetchWithAuth = (url, options = {}) => {
+  console.log('fetchWithAuth:', url, options);
+  return fetch(url, { ...options, credentials: 'include' });
+};
 
 export const getProducts = (params = "") =>
   fetch(`${API_URL}/products${params}`).then(res => res.json());
 
-export const addToCart = (productId, quantity = 1) =>
-  fetchWithAuth(`${API_URL}/cart/add?productId=${productId}&quantity=${quantity}`, {
+export const addToCart = (productId, quantity = 1) => {
+  console.log('addToCart API call:', productId, quantity);
+  return fetchWithAuth(`${API_URL}/cart/add?productId=${productId}&quantity=${quantity}`, {
     method: "POST"
+  }).then(response => {
+    console.log('addToCart response:', response.status, response.statusText);
+    return response;
   });
+};
 
 export const getCart = () =>
   fetchWithAuth(`${API_URL}/cart`).then(res => res.json());
@@ -69,3 +76,33 @@ export const updateProfile = (profileData) =>
 
 export const getMyOrders = () =>
   fetchWithAuth(`${API_URL}/orders`).then(res => res.json());
+
+
+export const updateCartItem = (productId, quantity) =>
+  fetchWithAuth(`${API_URL}/cart/update?productId=${productId}&quantity=${quantity}`, {
+    method: "PUT"
+  });
+
+export const getCategories = () => {
+  console.log('Запрос категорий к:', `${API_URL}/categories`);
+  return fetch(`${API_URL}/categories`)
+    .then(res => {
+      console.log('Ответ категорий:', res.status, res.statusText);
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      }
+      return res.json();
+    })
+    .then(data => {
+      console.log('Данные категорий:', data);
+      return data;
+    })
+    .catch(err => {
+      console.error('Ошибка при запросе категорий:', err);
+      throw err;
+    });
+};
+
+
+
+

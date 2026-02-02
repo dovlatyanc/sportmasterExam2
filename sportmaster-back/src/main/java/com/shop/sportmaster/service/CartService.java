@@ -60,5 +60,25 @@ public class CartService {
     public void clearCart(User user) {
         cartItemRepository.deleteByUser(user);
     }
+    public void updateCartItem(User user, Long productId, int newQuantity) {
+        if (newQuantity <= 0) {
+            removeFromCart(user, productId);
+            return;
+        }
+
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Товар не найден"));
+
+        if (product.getStock() < newQuantity) {
+            throw new RuntimeException("Недостаточно товара на складе. Доступно: " + product.getStock());
+        }
+
+        CartItem cartItem = cartItemRepository
+                .findByUserAndProduct(user, product)
+                .orElseThrow(() -> new RuntimeException("Товар не найден в корзине"));
+
+        cartItem.setQuantity(newQuantity);
+        cartItemRepository.save(cartItem);
+    }
 }
 
