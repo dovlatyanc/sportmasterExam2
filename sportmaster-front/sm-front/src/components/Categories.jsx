@@ -88,9 +88,7 @@ const Category = () => {
             }}
             >
               <h3 style={{ margin: '0 0 10px 0' }}>{category.name}</h3>
-              <p style={{ margin: 0, color: '#666' }}>
-                {category.productCount || 0} товаров
-              </p>
+             
             </div>
           </Link>
         ))}

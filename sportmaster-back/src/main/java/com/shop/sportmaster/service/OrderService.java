@@ -115,7 +115,20 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
+
+
     public List<Order> getUserOrders(User user) {
-        return orderRepository.findByUser(user);
+        List<Order> orders = orderRepository.findByUser(user);
+
+        LocalDateTime now = LocalDateTime.now();
+        for (Order order : orders) {
+            if (order.getStatus() == OrderStatus.NEW &&
+                    order.getCreatedAt().isBefore(now.minusHours(1))) {
+                order.setStatus(OrderStatus.COMPLETED);
+                orderRepository.save(order);
+            }
+        }
+
+        return orders;
     }
 }

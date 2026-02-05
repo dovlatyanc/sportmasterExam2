@@ -14,6 +14,7 @@ import UserListAdmin from './components/admin/UserListAdmin';
 import AdminRoute from './components/admin/AdminRoute';
 import { useAuth } from '../src/hooks/useAuth';
 import ProfilePage from './components/ProfilePage';
+import OrderSuccess from './components/OrderSuccess';
 import './App.css';
 
 function App() {
@@ -63,7 +64,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/profile" element={<ProfilePage />} />
-
+            <Route path="/order-success" element={<OrderSuccess />} />
            <Route
               path="/admin"
               element={

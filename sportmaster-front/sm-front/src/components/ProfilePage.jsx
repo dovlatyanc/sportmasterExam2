@@ -141,9 +141,10 @@ export default function ProfilePage() {
                 padding: '15px',
                 borderRadius: '6px'
               }}>
-                <p><strong>Заказ №{order.id}</strong> — {new Date(order.createdAt).toLocaleDateString()}</p>
+                <p><strong>Заказ №{order.id}</strong> — {new Date(order.createdAt).toLocaleDateString('ru-RU')}</p>
                 <p>Статус: {order.status}</p>
-                <p>Сумма: {order.totalAmount} ₽</p>
+               
+                <p>Сумма: {order.totalPrice?.toLocaleString('ru-RU') || '0'} ₽</p>
               </div>
             ))}
           </div>

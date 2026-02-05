@@ -73,7 +73,7 @@ export default function CategoryListAdmin() {
 
   // Удаление категории
   const handleDelete = async (id) => {
-    if (!window.confirm('Удалить категорию? Все товары удалятся вместе с ней.')) return;
+    if (!window.confirm('Удалить категорию?')) return;
     try {
       await deleteAdminCategory(id);
       await loadCategories();

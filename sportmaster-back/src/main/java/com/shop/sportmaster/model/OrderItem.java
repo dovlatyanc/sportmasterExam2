@@ -1,6 +1,7 @@
 // src/main/java/com/shop/sportmaster/model/OrderItem.java
 package com.shop.sportmaster.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,6 +18,7 @@ public class OrderItem {
     private Long id;
 
     @ManyToOne
+    @JsonBackReference
     private Order order;
 
     @ManyToOne

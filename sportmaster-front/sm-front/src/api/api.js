@@ -41,13 +41,13 @@ export const register = (email, password, fullName) =>
     credentials: 'include'
   });
 
-export const createGuestOrder = (guestData) =>
-  fetch(`${API_URL}/orders/guest`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(guestData)
+export const createGuestOrder = (orderData) =>
+  fetch(`${API_URL}/orders/guest`, { 
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(orderData)
   }).then(res => {
-    if (!res.ok) throw new Error('Ошибка заказа');
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
     return res.json();
   });
 
@@ -174,6 +174,9 @@ export const getFilteredProducts = (filters) => {
   });
   return getProducts(`?${params.toString()}`);
 };
+
+export const getProductsSimple = () =>
+  fetch(`${API_URL}/products/simple`).then(res => res.json());
 
 
 

@@ -1,11 +1,13 @@
 // src/components/Cart.jsx
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import * as api from '../api/api';
 
 const Cart = () => {
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadCart();
@@ -14,18 +16,15 @@ const Cart = () => {
   const loadCart = async () => {
     try {
       const data = await api.getCart();
-      console.log('Получена корзина:', data);
       setCart(data);
       setError('');
     } catch (err) {
       console.error('Ошибка загрузки корзины:', err);
-      
       if (err.message.includes('401')) {
         setError('Для просмотра корзины нужно войти в систему');
       } else {
         setError('Ошибка загрузки корзины');
       }
-      
     } finally {
       setLoading(false);
     }
@@ -34,7 +33,7 @@ const Cart = () => {
   const handleRemove = async (productId) => {
     try {
       await api.removeFromCart(productId);
-      await loadCart(); // Перезагружаем
+      await loadCart();
     } catch (err) {
       console.error('Ошибка удаления:', err);
       setError('Не удалось удалить товар');
@@ -47,20 +46,29 @@ const Cart = () => {
         await handleRemove(productId);
         return;
       }
-      
-      // Обновляем через PUT или через удаление/добавление
-      try {
-        await api.updateCartItem(productId, newQuantity);
-      } catch {
-        // Если PUT не работает, удаляем и добавляем
-        await api.removeFromCart(productId);
-        await api.addToCart(productId, newQuantity);
-      }
-      
+      await api.updateCartItem(productId, newQuantity);
       await loadCart();
     } catch (err) {
       console.error('Ошибка обновления:', err);
       setError('Не удалось обновить количество');
+    }
+  };
+
+  const handleCheckout = async () => {
+    try {
+      // Попробуем создать заказ как авторизованный пользователь
+      const order = await api.createOrder();
+      alert('Заказ оформлен! Номер: ' + order.id);
+      navigate('/orders'); // перейти к истории заказов
+    } catch (err) {
+      if (err.message.includes('401')) {
+        // Не авторизован → гостевой заказ
+        if (window.confirm('Для оформления заказа нужно войти или продолжить как гость?')) {
+          navigate('/guest-order');
+        }
+      } else {
+        alert('Ошибка оформления заказа: ' + err.message);
+      }
     }
   };
 
@@ -75,21 +83,17 @@ const Cart = () => {
     return (
       <div style={{ padding: '20px' }}>
         <h2>Корзина</h2>
-        <div style={{ 
-          background: '#fff3cd', 
-          padding: '15px',
-          borderRadius: '5px'
-        }}>
+        <div style={{ background: '#fff3cd', padding: '15px', borderRadius: '5px' }}>
           <p style={{ margin: 0 }}>{error}</p>
           <div style={{ marginTop: '10px' }}>
             <button
-              onClick={() => window.location.href = '/login'}
+              onClick={() => navigate('/login')}
               style={{ marginRight: '10px', padding: '8px 16px' }}
             >
               Войти
             </button>
             <button
-              onClick={() => window.location.href = '/'}
+              onClick={() => navigate('/')}
               style={{ padding: '8px 16px' }}
             >
               К товарам
@@ -108,7 +112,7 @@ const Cart = () => {
         <div style={{ textAlign: 'center', padding: '40px' }}>
           <p>Корзина пуста</p>
           <button
-            onClick={() => window.location.href = '/'}
+            onClick={() => navigate('/')}
             style={{ padding: '10px 20px', marginTop: '10px' }}
           >
             Перейти к товарам
@@ -192,7 +196,7 @@ const Cart = () => {
             
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
               <button
-                onClick={() => window.location.href = '/'}
+                onClick={() => navigate('/')}
                 style={{
                   padding: '10px 20px',
                   background: '#6c757d',
@@ -205,10 +209,7 @@ const Cart = () => {
               </button>
               
               <button
-                onClick={() => {
-                  // TODO: Оформление заказа
-                  alert('Оформление заказа (в разработке)');
-                }}
+                onClick={handleCheckout}
                 style={{
                   padding: '10px 20px',
                   background: '#28a745',

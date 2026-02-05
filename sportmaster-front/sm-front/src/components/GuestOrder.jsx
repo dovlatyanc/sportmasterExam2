@@ -1,145 +1,246 @@
-// src/components/GuestOrder.jsx
-import { useState, useEffect } from 'react';
-import * as api from '../api/api';
 
-const GuestOrder = () => {
-  const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    address: ''
-  });
-  const [orderItems, setOrderItems] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { createGuestOrder, getProductsSimple } from '../api/api';
+
+export default function GuestOrder() {
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [city, setCity] = useState('');
+  const [country, setCountry] = useState('');
+  const [products, setProducts] = useState([]);
+  const [quantities, setQuantities] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Проверяем, есть ли товар для быстрого заказа
-    const quickOrder = JSON.parse(localStorage.getItem('quickOrder') || '{}');
-    if (quickOrder.items) {
-      setOrderItems(quickOrder.items);
-    }
+    const loadProducts = async () => {
+      try {
+        const data = await getProductsSimple();
+        setProducts(data);
+        const initialQuantities = {};
+        data.forEach(p => initialQuantities[p.id] = 0);
+        setQuantities(initialQuantities);
+      } catch (err) {
+        console.error('Ошибка загрузки товаров:', err);
+        setError('Не удалось загрузить товары');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProducts();
   }, []);
+
+  const handleQuantityChange = (productId, value) => {
+    const numValue = parseInt(value) || 0;
+    setQuantities(prev => ({ ...prev, [productId]: numValue }));
+  };
+
+  const validateForm = () => {
+    if (!fullName.trim()) {
+      alert('Пожалуйста, укажите ФИО');
+      return false;
+    }
+    if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) {
+      alert('Пожалуйста, укажите корректный email');
+      return false;
+    }
+    if (!phone.trim()) {
+      alert('Пожалуйста, укажите телефон');
+      return false;
+    }
+    if (!city.trim()) {
+      alert('Пожалуйста, укажите город');
+      return false;
+    }
+    if (!country.trim()) {
+      alert('Пожалуйста, укажите страну');
+      return false;
+    }
+
+    const selectedItems = products.filter(p => quantities[p.id] > 0);
+    if (selectedItems.length === 0) {
+      alert('Пожалуйста, выберите хотя бы один товар');
+      return false;
+    }
+
+    return true;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
 
+    if (!validateForm()) return;
+
+    setSubmitting(true);
+
     try {
+      const cartItems = products
+        .filter(product => quantities[product.id] > 0)
+        .map(product => ({
+          productId: product.id,
+          quantity: quantities[product.id]
+        }));
+
       const orderData = {
-        ...formData,
-        items: orderItems
+        fullName,
+        email,
+        phone,
+        city,
+        country,
+        cartItems
       };
 
-      const result = await api.createGuestOrder(orderData);
-      setSuccess(true);
-      localStorage.removeItem('quickOrder'); // Очищаем временные данные
+      await createGuestOrder(orderData);
+      
+      // Успех → редирект на страницу успеха
+      navigate('/order-success');
+
     } catch (err) {
-      setError('Ошибка при оформлении заказа');
-      console.error(err);
+      console.error('Ошибка создания заказа:', err);
+      
+      // Покажем более точную ошибку
+      if (err.message && err.message.includes('Недостаточно товара')) {
+        setError('Некоторые товары закончились. Обновите страницу.');
+      } else {
+        setError('Не удалось создать заказ. Проверьте данные и попробуйте снова.');
+      }
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
-  if (success) {
-    return (
-      <div style={{ padding: '40px', textAlign: 'center' }}>
-        <h2 style={{ color: 'green' }}>Заказ успешно оформлен!</h2>
-        <p>Мы свяжемся с вами для подтверждения заказа.</p>
-        <button
-          onClick={() => window.location.href = '/'}
-          style={{ padding: '10px 20px', marginTop: '20px' }}
-        >
-          Вернуться к товарам
-        </button>
-      </div>
-    );
+  if (loading) {
+    return <div style={{ padding: '20px' }}>Загрузка товаров...</div>;
   }
 
   return (
-    <div style={{ maxWidth: '500px', margin: '0 auto', padding: '20px' }}>
+    <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
       <h2>Быстрый заказ без регистрации</h2>
-      
-      {orderItems.length > 0 && (
-        <div style={{ marginBottom: '20px', padding: '15px', background: '#f8f9fa' }}>
-          <h4>Ваш заказ:</h4>
-          {orderItems.map((item, index) => (
-            <div key={index}>
-              Товар #{item.productId} - {item.quantity} шт. - {item.price} ₽
-            </div>
-          ))}
+
+      {error && (
+        <div style={{ 
+          backgroundColor: '#f8d7da', 
+          color: '#721c24', 
+          padding: '12px', 
+          borderRadius: '6px', 
+          marginBottom: '20px' 
+        }}>
+          {error}
         </div>
       )}
-      
+
       <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>ФИО:</label>
+        {/* Личные данные */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '25px' }}>
           <input
             type="text"
-            value={formData.fullName}
-            onChange={(e) => setFormData({...formData, fullName: e.target.value})}
+            placeholder="ФИО *"
+            value={fullName}
+            onChange={e => setFullName(e.target.value)}
             required
-            style={{ width: '100%', padding: '8px' }}
+            style={{ padding: '10px', fontSize: '16px' }}
           />
-        </div>
-        
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>Email:</label>
           <input
             type="email"
-            value={formData.email}
-            onChange={(e) => setFormData({...formData, email: e.target.value})}
+            placeholder="Email *"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
             required
-            style={{ width: '100%', padding: '8px' }}
+            style={{ padding: '10px', fontSize: '16px' }}
           />
-        </div>
-        
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>Телефон:</label>
           <input
             type="tel"
-            value={formData.phone}
-            onChange={(e) => setFormData({...formData, phone: e.target.value})}
+            placeholder="Телефон *"
+            value={phone}
+            onChange={e => setPhone(e.target.value)}
             required
-            style={{ width: '100%', padding: '8px' }}
+            style={{ padding: '10px', fontSize: '16px' }}
           />
-        </div>
-        
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>Адрес:</label>
           <input
             type="text"
-            value={formData.address}
-            onChange={(e) => setFormData({...formData, address: e.target.value})}
+            placeholder="Город *"
+            value={city}
+            onChange={e => setCity(e.target.value)}
             required
-            style={{ width: '100%', padding: '8px' }}
+            style={{ padding: '10px', fontSize: '16px' }}
+          />
+          <input
+            type="text"
+            placeholder="Страна *"
+            value={country}
+            onChange={e => setCountry(e.target.value)}
+            required
+            style={{ padding: '10px', fontSize: '16px' }}
           />
         </div>
-        
-        {error && (
-          <div style={{ color: 'red', marginBottom: '15px' }}>{error}</div>
+
+        <h3>Выберите товары</h3>
+        {products.length === 0 ? (
+          <p>Нет доступных товаров</p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginBottom: '25px' }}>
+            {products.map(product => {
+              const maxQty = product.stock;
+              const options = [<option key="0" value="0">Не выбрано</option>];
+              
+              for (let i = 1; i <= Math.min(maxQty, 10); i++) {
+                options.push(
+                  <option key={i} value={i}>
+                    {i} шт
+                  </option>
+                );
+              }
+
+              return (
+                <div
+                  key={product.id}
+                  style={{
+                    border: '1px solid #ddd',
+                    borderRadius: '8px',
+                    padding: '15px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}
+                >
+                  <div style={{ flex: 1 }}>
+                    <strong>{product.name}</strong> — {product.brand}<br/>
+                    <small>Цена: {product.price} ₽ • В наличии: {maxQty}</small>
+                  </div>
+                  <select
+                    value={quantities[product.id] || 0}
+                    onChange={e => handleQuantityChange(product.id, e.target.value)}
+                    style={{ padding: '8px', fontSize: '16px', minWidth: '120px' }}
+                  >
+                    {options}
+                  </select>
+                </div>
+              );
+            })}
+          </div>
         )}
-        
+
         <button
           type="submit"
-          disabled={loading}
+          disabled={submitting}
           style={{
-            padding: '12px 30px',
-            background: '#28a745',
+            padding: '12px 24px',
+            fontSize: '18px',
+            background: submitting ? '#ccc' : '#28a745',
             color: 'white',
             border: 'none',
-            cursor: 'pointer',
-            fontSize: '16px'
+            borderRadius: '6px',
+            cursor: submitting ? 'not-allowed' : 'pointer'
           }}
         >
-          {loading ? 'Оформление...' : 'Оформить заказ'}
+          {submitting ? 'Оформление...' : 'Оформить заказ'}
         </button>
       </form>
     </div>
   );
-};
-
-export default GuestOrder;
+}
