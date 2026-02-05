@@ -15,10 +15,11 @@ public interface ProductRepository
 
     List<Product> findByCategoryId(Long categoryId);
     void deleteByCategoryId(Long categoryId);
+    long count();
 
     @Query("SELECT p FROM Product p WHERE " +
-            "(:name IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
-            "(:brand IS NULL OR LOWER(p.brand) LIKE LOWER(CONCAT('%', :brand, '%'))) AND " +
+            "(:name IS NULL OR p.name ILIKE %:name%) AND " +
+            "(:brand IS NULL OR p.brand ILIKE %:brand%) AND " +
             "(:categoryId IS NULL OR p.category.id = :categoryId) AND " +
             "(:size IS NULL OR p.size = :size) AND " +
             "(:color IS NULL OR p.color = :color) AND " +
@@ -33,5 +34,4 @@ public interface ProductRepository
             @Param("priceMin") BigDecimal priceMin,
             @Param("priceMax") BigDecimal priceMax
     );
-
 }

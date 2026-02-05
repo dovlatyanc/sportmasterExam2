@@ -3,6 +3,7 @@ package com.shop.sportmaster.controller;
 
 import com.shop.sportmaster.dto.ProductRequest;
 import com.shop.sportmaster.model.Product;
+import com.shop.sportmaster.repository.ProductRepository;
 import com.shop.sportmaster.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,7 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
+    private  final ProductRepository productRepository;
 
     @PostMapping
     public Product create(@RequestBody ProductRequest request) {
@@ -41,5 +43,9 @@ public class ProductController {
                 priceMin,
                 priceMax
         );
+    }
+    @GetMapping("/simple")
+    public List<Product> getProductsSimple() {
+        return productRepository.findAll();
     }
 }

@@ -1,44 +1,94 @@
 // src/components/ProductList.jsx
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import ProductCard from './ProductCard';
 import * as api from '../api/api';
-import { useSearchParams } from 'react-router-dom';
 
 const ProductList = () => {
-  const [searchParams] = useSearchParams(); //
-  const categoryId = searchParams.get('categoryId'); //  получаем из ?categoryId=123
-
+  const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState({
+    name: '',
+    brand: '',
+    categoryId: '',
+    size: '',
+    color: '',
+    priceMin: '',
+    priceMax: ''
+  });
+
+  // Загрузка данных при изменении URL
   useEffect(() => {
-    loadProducts();
-  }, [categoryId]);
-
-  const loadProducts = async () => {
-  try {
-    setLoading(true);
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        
+        // Получаем фильтры из URL
+        const urlFilters = Object.fromEntries(searchParams);
+        
+        // Загружаем товары и категории параллельно
+        const [productsData, categoriesData] = await Promise.all([
+          api.getFilteredProducts(urlFilters),
+          api.getCategories()
+        ]);
+        
+        setProducts(productsData);
+        setCategories(categoriesData);
+        
+        // Синхронизируем состояние формы с URL
+        setFilters({
+          name: searchParams.get('name') || '',
+          brand: searchParams.get('brand') || '',
+          categoryId: searchParams.get('categoryId') || '',
+          size: searchParams.get('size') || '',
+          color: searchParams.get('color') || '',
+          priceMin: searchParams.get('priceMin') || '',
+          priceMax: searchParams.get('priceMax') || ''
+        });
+      } catch (err) {
+        console.error('Ошибка загрузки товаров:', err);
+        setProducts([]); // или тестовые данные
+      } finally {
+        setLoading(false);
+      }
+    };
     
-    
-    const filters = {};
-    if (categoryId) {
-      filters.categoryId = categoryId;
-    }
+    loadData();
+  }, [searchParams]);
 
-    const data = await api.getFilteredProducts(filters);
-    setProducts(data);
-  } catch (err) {
-    console.error('Ошибка загрузки товаров:', err);
-    // Тестовые данные
-    setProducts([
-      { id: 1, name: 'Кроссовки Nike Air Max', price: 9999, stock: 10, brand: 'Nike', color: 'Черный' },
-      { id: 2, name: 'Футболка Adidas', price: 2499, stock: 25, brand: 'Adidas', color: 'Белый' },
-      { id: 3, name: 'Шорты Puma', price: 1899, stock: 15, brand: 'Puma', color: 'Синий' },
-      { id: 4, name: 'Кепка New Era', price: 1599, stock: 5, brand: 'New Era', color: 'Красный' },
-    ]);
-  } finally {
-    setLoading(false);
-  }
-};
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters(prev => ({ ...prev, [name]: value }));
+  };
+
+  const applyFilters = (e) => {
+    e.preventDefault();
+    const newParams = {};
+    
+    // Добавляем только непустые фильтры в URL
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== '') {
+        newParams[key] = value;
+      }
+    });
+    
+    setSearchParams(newParams);
+  };
+
+  const resetFilters = () => {
+    setFilters({
+      name: '',
+      brand: '',
+      categoryId: '',
+      size: '',
+      color: '',
+      priceMin: '',
+      priceMax: ''
+    });
+    setSearchParams({});
+  };
 
   const handleAddToCart = async (productId) => {
     console.log('Добавляем товар ID:', productId);
@@ -83,16 +133,93 @@ const ProductList = () => {
   return (
     <div style={{ padding: '20px' }}>
       <h1>Товары</h1>
-      
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px' }}>
-        {products.map(product => (
-          <ProductCard
-            key={product.id}
-            product={product}
-            onAddToCart={handleAddToCart}
+
+      {/* Форма поиска */}
+      <form onSubmit={applyFilters} style={{ marginBottom: '30px', padding: '20px', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
+        <h3>Поиск и фильтрация</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', marginBottom: '15px' }}>
+          <input
+            name="name"
+            placeholder="Название"
+            value={filters.name}
+            onChange={handleFilterChange}
+            style={{ padding: '8px' }}
           />
-        ))}
-      </div>
+          <input
+            name="brand"
+            placeholder="Бренд"
+            value={filters.brand}
+            onChange={handleFilterChange}
+            style={{ padding: '8px' }}
+          />
+          <select
+            name="categoryId"
+            value={filters.categoryId}
+            onChange={handleFilterChange}
+            style={{ padding: '8px' }}
+          >
+            <option value="">Все категории</option>
+            {categories.map(cat => (
+              <option key={cat.id} value={cat.id}>{cat.name}</option>
+            ))}
+          </select>
+          <input
+            name="size"
+            placeholder="Размер"
+            value={filters.size}
+            onChange={handleFilterChange}
+            style={{ padding: '8px' }}
+          />
+          <input
+            name="color"
+            placeholder="Цвет"
+            value={filters.color}
+            onChange={handleFilterChange}
+            style={{ padding: '8px' }}
+          />
+          <input
+            name="priceMin"
+            type="number"
+            placeholder="Цена от"
+            value={filters.priceMin}
+            onChange={handleFilterChange}
+            style={{ padding: '8px' }}
+          />
+          <input
+            name="priceMax"
+            type="number"
+            placeholder="Цена до"
+            value={filters.priceMax}
+            onChange={handleFilterChange}
+            style={{ padding: '8px' }}
+          />
+        </div>
+        <div>
+          <button type="submit" style={{ marginRight: '10px', padding: '8px 16px' }}>Применить</button>
+          <button 
+            type="button" 
+            onClick={resetFilters} 
+            style={{ padding: '8px 16px', background: '#6c757d', color: 'white', border: 'none', borderRadius: '4px' }}
+          >
+            Сбросить
+          </button>
+        </div>
+      </form>
+
+      {/* Список товаров */}
+      {products.length === 0 ? (
+        <p style={{ textAlign: 'center', fontSize: '18px' }}>Товары не найдены</p>
+      ) : (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px' }}>
+          {products.map(product => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              onAddToCart={handleAddToCart}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

@@ -1,9 +1,14 @@
+
 package com.shop.sportmaster.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "roles")
+@Getter
+@Setter
 public class Role {
 
     @Id
@@ -17,9 +22,5 @@ public class Role {
 
     public Role(String name) {
         this.name = name;
-    }
-
-    public String getName() {
-        return name;
     }
 }

@@ -18,7 +18,8 @@ import './App.css';
 
 function App() {
 
-   const { isAdmin } = useAuth(); 
+   const { isAdmin,user } = useAuth(); 
+  
    
   return (
     <Router>
@@ -34,7 +35,9 @@ function App() {
               <Link to="/orders">Заказы</Link>
             </div>
             <div className="nav-auth">
-              <Link to="/profile">Профиль</Link>
+              {/*показываем зарегистрированным пользвателям*/}
+             {user && <Link to="/profile">Профиль</Link>}
+            
               <Link to="/login">Вход</Link>
               <Link to="/register">Регистрация</Link>
                <Link to="/logout">Выход</Link>
@@ -97,18 +100,9 @@ function App() {
 
 // Компонент главной страницы
 function HomePage() {
-  const categories = [
-    { name: "Бег", count: 245 },
-    { name: "Фитнес", count: 189 },
-    { name: "Футбол", count: 312 },
-    { name: "Зимний спорт", count: 156 },
-  ];
 
-  const products = [
-    { name: "Кроссовки Nike Air Max", price: "9 999₽" },
-    { name: "Спортивная форма Adidas", price: "5 799₽" },
-    { name: "Футбольный мяч Select", price: "3 499₽" },
-  ];
+
+
 
   return (
     <div className="home-page">
@@ -125,47 +119,7 @@ function HomePage() {
       </section>
 
       {/* Основной контент */}
-      <div className="container">
-        {/* Категории */}
-        <section className="categories">
-          <h2>Популярные категории</h2>
-          <div className="categories-grid">
-            {categories.map((category, index) => (
-              <Link key={index} to="/products" className="category-card">
-                <div className="category-icon">
-                  {category.name === "Бег" && "🏃‍♂️"}
-                  {category.name === "Фитнес" && "💪"}
-                  {category.name === "Футбол" && "⚽"}
-                  {category.name === "Зимний спорт" && "🎿"}
-                </div>
-                <h3>{category.name}</h3>
-               
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        {/* Популярные товары */}
-        <section className="products">
-          <div className="section-header">
-            <h2>Популярные товары</h2>
-            <Link to="/products" className="view-all">Все товары →</Link>
-          </div>
-          <div className="products-list">
-            {products.map((product, index) => (
-              <div key={index} className="product-card">
-                <div className="product-image"></div>
-                <div className="product-info">
-                  <h3>{product.name}</h3>
-                  <div className="product-footer">
-                    <span className="price">{product.price}</span>
-                    <button className="add-to-cart">В корзину</button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+      <div className="container"> 
 
         {/* Преимущества */}
         <section className="features">

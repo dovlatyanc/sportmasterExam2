@@ -1,4 +1,4 @@
-// src/components/AdminPanel.jsx
+
 import { useState } from 'react';
 import { Link, Outlet } from 'react-router-dom';
 

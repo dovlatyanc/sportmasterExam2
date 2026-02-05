@@ -51,13 +51,6 @@ export const createGuestOrder = (guestData) =>
     return res.json();
   });
 
-export const getFilteredProducts = (filters) => {
-  const params = new URLSearchParams();
-  Object.entries(filters).forEach(([key, value]) => {
-    if (value !== undefined && value !== "") params.append(key, value);
-  });
-  return getProducts(`?${params.toString()}`);
-};
 
 export const removeFromCart = (productId) =>
   fetchWithAuth(`${API_URL}/cart/remove?productId=${productId}`, {
@@ -83,9 +76,6 @@ export const updateCartItem = (productId, quantity) =>
     method: "PUT"
   });
 
-// Получить все категории
-export const getCategories = () =>
-  fetch(`${API_URL}/categories`).then(res => res.json());
 
 // Только для админки
 export const getAdminCategories = () =>
@@ -171,7 +161,19 @@ export const deleteAdminUser = (id) =>
     method: 'DELETE'
   });
 
+export const getCategories = () =>
+  fetch(`${API_URL}/categories`).then(res => res.json());
 
+// Фильтрация товаров
+export const getFilteredProducts = (filters) => {
+  const params = new URLSearchParams();
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      params.append(key, String(value));
+    }
+  });
+  return getProducts(`?${params.toString()}`);
+};
 
 
 

@@ -9,7 +9,7 @@ export const useAuth = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const data = await getProfile(); // GET /profile
+        const data = await getProfile();
         setUser(data);
       } catch (err) {
         setUser(null);
@@ -17,11 +17,12 @@ export const useAuth = () => {
         setLoading(false);
       }
     };
-
     fetchProfile();
   }, []);
 
-  const isAdmin = user?.role?.name === 'ADMIN';
+ 
+  const isAdmin = user?.role === 'ADMIN';
+  const isUser = user != null; 
 
-  return { user, isAdmin, loading };
+  return { user, isAdmin, isUser, loading };
 };
