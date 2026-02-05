@@ -13,6 +13,7 @@ import CategoryListAdmin from './components/admin/CategoryListAdmin';
 import UserListAdmin from './components/admin/UserListAdmin';
 import AdminRoute from './components/admin/AdminRoute';
 import { useAuth } from '../src/hooks/useAuth';
+import ProfilePage from './components/ProfilePage';
 import './App.css';
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
               <Link to="/orders">Заказы</Link>
             </div>
             <div className="nav-auth">
+              <Link to="/profile">Профиль</Link>
               <Link to="/login">Вход</Link>
               <Link to="/register">Регистрация</Link>
                <Link to="/logout">Выход</Link>
@@ -57,6 +59,7 @@ function App() {
             <Route path="/logout" element={<Logout />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/profile" element={<ProfilePage />} />
 
            <Route
               path="/admin"

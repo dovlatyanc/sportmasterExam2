@@ -1,6 +1,7 @@
 package com.shop.sportmaster.service;
 
 import com.shop.sportmaster.dto.GuestOrderRequest;
+import com.shop.sportmaster.dto.ProfileUpdateRequest;
 import com.shop.sportmaster.model.Profile;
 import com.shop.sportmaster.model.Role;
 import com.shop.sportmaster.repository.RoleRepository;
@@ -81,5 +82,22 @@ public class UserService {
     public void deleteUser(Long id) {
         // Опционально: проверь, есть ли у пользователя заказы
         userRepository.deleteById(id);
+    }
+    public User updateProfile(ProfileUpdateRequest request, Authentication authentication) {
+        User user = getCurrentUser(authentication);
+        Profile profile = user.getProfile();
+
+        if (profile == null) {
+            profile = new Profile();
+            profile.setUser(user);
+            user.setProfile(profile);
+        }
+
+        profile.setFullName(request.getFullName());
+        profile.setCity(request.getCity());
+        profile.setCountry(request.getCountry());
+        profile.setPhone(request.getPhone());
+
+        return userRepository.save(user);
     }
 }
