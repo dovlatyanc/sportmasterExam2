@@ -3,9 +3,10 @@ package com.shop.sportmaster.service;
 import com.shop.sportmaster.dto.ProductRequest;
 import com.shop.sportmaster.model.Category;
 import com.shop.sportmaster.model.Product;
+import com.shop.sportmaster.repository.CartItemRepository;
 import com.shop.sportmaster.repository.CategoryRepository;
 import com.shop.sportmaster.repository.ProductRepository;
-import com.shop.sportmaster.spec.ProductSpecification;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,47 +19,55 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final CartItemRepository cartItemRepository;
 
     public Product save(Product product) {
         return productRepository.save(product);
     }
+
     public List<Product> getAll() {
         return productRepository.findAll();
     }
-    public Product create(ProductRequest request) {
 
-        Category category = categoryRepository.findByName(request.category)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+    public Product create(ProductRequest request) {
+        if (request.getCategoryId() == null) {
+            throw new RuntimeException("Категория обязательна");
+        }
+
+        Category category = categoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() -> new RuntimeException("Категория не найдена"));
 
         Product product = new Product();
-        product.setName(request.name);
-        product.setBrand(request.brand);
-        product.setSize(request.size);
-        product.setColor(request.color);
-        product.setPrice(request.price);
+        product.setName(request.getName());
+        product.setBrand(request.getBrand());
+        product.setSize(request.getSize());
+        product.setColor(request.getColor());
+        product.setPrice(request.getPrice());
         product.setCategory(category);
-        product.setStock(request.stock);
+        product.setStock(request.getStock());
 
         return productRepository.save(product);
     }
 
+    @Transactional
     public void delete(Long id) {
+        cartItemRepository.deleteByProductId(id);
         productRepository.deleteById(id);
     }
-    public Product updateProduct(Long id, Product updated, Long categoryId) {
 
+    public Product update(Long id, ProductRequest request) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Товар не найден"));
 
-        Category category = categoryRepository.findById(categoryId)
+        Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("Категория не найдена"));
 
-        product.setName(updated.getName());
-        product.setBrand(updated.getBrand());
-        product.setSize(updated.getSize());
-        product.setColor(updated.getColor());
-        product.setPrice(updated.getPrice());
-        product.setStock(updated.getStock());
+        product.setName(request.getName());
+        product.setBrand(request.getBrand());
+        product.setSize(request.getSize());
+        product.setColor(request.getColor());
+        product.setPrice(request.getPrice());
+        product.setStock(request.getStock());
         product.setCategory(category);
 
         return productRepository.save(product);
@@ -73,11 +82,11 @@ public class ProductService {
             Integer priceMin,
             Integer priceMax
     ) {
-        return productRepository.findAll(
-                ProductSpecification.filter(
-                        name, brand, categoryId, size, color, priceMin, priceMax
-                )
+        BigDecimal min = (priceMin != null) ? BigDecimal.valueOf(priceMin) : null;
+        BigDecimal max = (priceMax != null) ? BigDecimal.valueOf(priceMax) : null;
+
+        return productRepository.findFiltered(
+                name, brand, categoryId, size, color, min, max
         );
     }
 }
-

@@ -83,26 +83,92 @@ export const updateCartItem = (productId, quantity) =>
     method: "PUT"
   });
 
-export const getCategories = () => {
-  console.log('Запрос категорий к:', `${API_URL}/categories`);
-  return fetch(`${API_URL}/categories`)
-    .then(res => {
-      console.log('Ответ категорий:', res.status, res.statusText);
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-      }
-      return res.json();
-    })
-    .then(data => {
-      console.log('Данные категорий:', data);
-      return data;
-    })
-    .catch(err => {
-      console.error('Ошибка при запросе категорий:', err);
-      throw err;
-    });
-};
+// Получить все категории
+export const getCategories = () =>
+  fetch(`${API_URL}/categories`).then(res => res.json());
+
+// Только для админки
+export const getAdminCategories = () =>
+  fetchWithAuth(`${API_URL}/admin/categories`).then(res => res.json());
+
+export const createAdminCategory = (name) =>
+  fetchWithAuth(`${API_URL}/admin/categories`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name })
+  }).then(res => res.json());
+
+export const updateAdminCategory = (id, name) =>
+  fetchWithAuth(`${API_URL}/admin/categories/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name })
+  }).then(res => res.json());
+
+export const deleteAdminCategory = (id) =>
+  fetchWithAuth(`${API_URL}/admin/categories/${id}`, {
+    method: 'DELETE'
+  });
+
+  
+export const getAdminProducts = () =>
+  fetchWithAuth(`${API_URL}/admin/products`).then(res => {
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    return res.json();
+  });
+
+// Создать товар
+export const createAdminProduct = (productData) =>
+  fetchWithAuth(`${API_URL}/admin/products`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(productData)
+  }).then(res => res.json());
+
+// Обновить товар
+export const updateAdminProduct = (id, productData) =>
+  fetchWithAuth(`${API_URL}/admin/products/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(productData)
+  }).then(res => res.json());
+
+// Удалить товар
+export const deleteAdminProduct = (id) =>
+  fetchWithAuth(`${API_URL}/admin/products/${id}`, {
+    method: 'DELETE'
+      });
 
 
+// Получить всех пользователей
+export const getAdminUsers = () =>
+  fetchWithAuth(`${API_URL}/admin/users`).then(res => {
+    if (!res.ok) throw new Error('Ошибка загрузки пользователей');
+    return res.json();
+  });
+
+// Заблокировать пользователя
+export const disableUser = (id) =>
+  fetchWithAuth(`${API_URL}/admin/users/${id}/disable`, {
+    method: 'PUT'
+  }).then(res => {
+    if (!res.ok) throw new Error('Ошибка блокировки');
+    return res.json();
+  });
+
+// Разблокировать пользователя
+export const enableUser = (id) =>
+  fetchWithAuth(`${API_URL}/admin/users/${id}/enable`, {
+    method: 'PUT'
+  }).then(res => {
+    if (!res.ok) throw new Error('Ошибка разблокировки');
+    return res.json();
+  });
+
+// Удалить пользователя
+export const deleteAdminUser = (id) =>
+  fetchWithAuth(`${API_URL}/admin/users/${id}`, {
+    method: 'DELETE'
+  });
 
 

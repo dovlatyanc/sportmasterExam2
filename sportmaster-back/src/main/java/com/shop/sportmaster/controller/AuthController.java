@@ -39,28 +39,32 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletRequest httpRequest) {
         User user = authService.login(request);
 
-        authenticateUser(user.getEmail(), httpRequest);
+        // Получаем роль из объекта user и добавляем префикс "ROLE_"
+        String role = "ROLE_" + user.getRole().getName();
+
+        // Передаём email, role и request
+        authenticateUser(user.getEmail(), role, httpRequest); // ← 3 аргумента
 
         return ResponseEntity.ok().build();
     }
 
     // Вспомогательный метод: устанавливает аутентификацию в сессию
-    private void authenticateUser(String email, HttpServletRequest request) {
+    private void authenticateUser(String email, String role, HttpServletRequest request) {
         Authentication auth = new UsernamePasswordAuthenticationToken(
                 email,
                 null,
-                AuthorityUtils.createAuthorityList("ROLE_USER")
+                AuthorityUtils.createAuthorityList(role) // ← теперь динамически
         );
 
         SecurityContext context = SecurityContextHolder.getContext();
         context.setAuthentication(auth);
-
 
         HttpSession session = request.getSession(true);
         session.setAttribute(
                 HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
                 context
         );
+
     }
 
 }

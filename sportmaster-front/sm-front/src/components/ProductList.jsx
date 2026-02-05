@@ -2,32 +2,43 @@
 import { useState, useEffect } from 'react';
 import ProductCard from './ProductCard';
 import * as api from '../api/api';
+import { useSearchParams } from 'react-router-dom';
 
 const ProductList = () => {
+  const [searchParams] = useSearchParams(); //
+  const categoryId = searchParams.get('categoryId'); //  получаем из ?categoryId=123
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     loadProducts();
-  }, []);
+  }, [categoryId]);
 
   const loadProducts = async () => {
-    try {
-      const data = await api.getProducts();
-      setProducts(data);
-    } catch (err) {
-      console.error('Ошибка загрузки товаров:', err);
-      // Тестовые данные
-      setProducts([
-        { id: 1, name: 'Кроссовки Nike Air Max', price: 9999, stock: 10, brand: 'Nike', color: 'Черный' },
-        { id: 2, name: 'Футболка Adidas', price: 2499, stock: 25, brand: 'Adidas', color: 'Белый' },
-        { id: 3, name: 'Шорты Puma', price: 1899, stock: 15, brand: 'Puma', color: 'Синий' },
-        { id: 4, name: 'Кепка New Era', price: 1599, stock: 5, brand: 'New Era', color: 'Красный' },
-      ]);
-    } finally {
-      setLoading(false);
+  try {
+    setLoading(true);
+    
+    
+    const filters = {};
+    if (categoryId) {
+      filters.categoryId = categoryId;
     }
-  };
+
+    const data = await api.getFilteredProducts(filters);
+    setProducts(data);
+  } catch (err) {
+    console.error('Ошибка загрузки товаров:', err);
+    // Тестовые данные
+    setProducts([
+      { id: 1, name: 'Кроссовки Nike Air Max', price: 9999, stock: 10, brand: 'Nike', color: 'Черный' },
+      { id: 2, name: 'Футболка Adidas', price: 2499, stock: 25, brand: 'Adidas', color: 'Белый' },
+      { id: 3, name: 'Шорты Puma', price: 1899, stock: 15, brand: 'Puma', color: 'Синий' },
+      { id: 4, name: 'Кепка New Era', price: 1599, stock: 5, brand: 'New Era', color: 'Красный' },
+    ]);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleAddToCart = async (productId) => {
     console.log('Добавляем товар ID:', productId);

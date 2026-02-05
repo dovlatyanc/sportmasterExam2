@@ -64,7 +64,7 @@ const Category = () => {
         {categories.map(category => (
           <Link 
             key={category.id}
-            to={`/?categoryId=${category.id}`}
+            to={`/products/?categoryId=${category.id}`}
             style={{
               textDecoration: 'none',
               color: 'inherit'

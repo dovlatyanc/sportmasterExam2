@@ -7,9 +7,18 @@ import Category from './components/Categories';
 import ProductList from './components/ProductList';
 import Logout from './components/Logout';
 import GuestOrder from './components/GuestOrder';
+import AdminPanel from './components/admin/AdminPanel';
+import ProductListAdmin from './components/admin/ProductListAdmin';
+import CategoryListAdmin from './components/admin/CategoryListAdmin';
+import UserListAdmin from './components/admin/UserListAdmin';
+import AdminRoute from './components/admin/AdminRoute';
+import { useAuth } from '../src/hooks/useAuth';
 import './App.css';
 
 function App() {
+
+   const { isAdmin } = useAuth(); 
+   
   return (
     <Router>
       <div className="app">
@@ -27,6 +36,12 @@ function App() {
               <Link to="/login">Вход</Link>
               <Link to="/register">Регистрация</Link>
                <Link to="/logout">Выход</Link>
+              {/* Показываем админку ТОЛЬКО админам */}
+              {isAdmin && (
+                <Link to="/admin" style={{ marginLeft: '10px', color: '#d63384', fontWeight: 'bold' }}>
+                  Админка
+                </Link>
+              )}
             </div>
           </div>
         </nav>
@@ -42,6 +57,19 @@ function App() {
             <Route path="/logout" element={<Logout />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+
+           <Route
+              path="/admin"
+              element={
+                <AdminRoute>
+                  <AdminPanel />
+                </AdminRoute>
+              }
+            >
+              <Route path="products" element={<ProductListAdmin />} />
+              <Route path="categories" element={<CategoryListAdmin />} />
+              <Route path="users" element={<UserListAdmin />} />
+            </Route>
           </Routes>
         </main>
 

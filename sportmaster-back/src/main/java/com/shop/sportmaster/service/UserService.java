@@ -10,6 +10,8 @@ import com.shop.sportmaster.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -56,5 +58,28 @@ public class UserService {
 
                     return userRepository.save(user);
                 });
+    }
+    // В UserService.java
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    public User disableUser(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+        user.setEnabled(false);
+        return userRepository.save(user);
+    }
+
+    public User enableUser(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+        user.setEnabled(true);
+        return userRepository.save(user);
+    }
+
+    public void deleteUser(Long id) {
+        // Опционально: проверь, есть ли у пользователя заказы
+        userRepository.deleteById(id);
     }
 }
