@@ -1,5 +1,6 @@
 package com.shop.sportmaster.service;
 
+import com.shop.sportmaster.dto.GuestOrderItem;
 import com.shop.sportmaster.dto.GuestOrderRequest;
 import com.shop.sportmaster.model.*;
 import com.shop.sportmaster.repository.*;
@@ -12,21 +13,19 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class OrderService {
 
     private final OrderRepository orderRepository;
-    private final OrderItemRepository orderItemRepository;
     private final ProductRepository productRepository;
     private final CartItemRepository cartItemRepository;
     private final UserRepository userRepository;
-    private final AuthService authService;
 
     // ---------- АВТОРИЗОВАННЫЙ ----------
     public Order createOrder(User user) {
-
         List<CartItem> cartItems = cartItemRepository.findByUser(user);
 
         if (cartItems.isEmpty()) {
@@ -42,42 +41,46 @@ public class OrderService {
         List<OrderItem> orderItems = new ArrayList<>();
 
         for (CartItem cartItem : cartItems) {
+            Product product = cartItem.getProduct();
+            int quantity = cartItem.getQuantity();
+
+            if (product.getStock() < quantity) {
+                throw new RuntimeException("Недостаточно товара: " + product.getName());
+            }
+
+            // Уменьшаем остаток
+            product.setStock(product.getStock() - quantity);
+            productRepository.save(product); // ← сохраняем изменения
+
             OrderItem item = new OrderItem();
             item.setOrder(order);
-            item.setProduct(cartItem.getProduct());
-            item.setQuantity(cartItem.getQuantity());
+            item.setProduct(product);
+            item.setQuantity(quantity);
+            item.setPriceAtOrder(product.getPrice());
 
-            BigDecimal itemTotal = cartItem.getProduct()
-                    .getPrice()
-                    .multiply(BigDecimal.valueOf(cartItem.getQuantity()));
-
-            total = total.add(itemTotal);
+            total = total.add(product.getPrice().multiply(BigDecimal.valueOf(quantity)));
             orderItems.add(item);
         }
 
         order.setTotalPrice(total);
         order.setItems(orderItems);
 
-        Order saved = orderRepository.save(order);
-        cartItemRepository.deleteByUser(user);
+        Order savedOrder = orderRepository.save(order);
+        cartItemRepository.deleteByUser(user); // очищаем корзину
 
-        return saved;
+        return savedOrder;
     }
 
     // ---------- ГОСТЕВОЙ ----------
     public Order createGuestOrder(GuestOrderRequest request) {
-
-        Profile profile = new Profile();
-        profile.setFullName(request.getFullName());
-        profile.setEmail(request.getEmail());
-        profile.setPhone(request.getPhone());
-        profile.setCity(request.getCity());
-        profile.setCountry(request.getCountry());
-
-        User guest = authService.createGuestUser(profile);
-
         Order order = new Order();
-        order.setUser(guest);
+        // Заполняем данные гостя напрямую
+        order.setGuestFullName(request.getFullName());
+        order.setGuestEmail(request.getEmail());
+        order.setGuestPhone(request.getPhone());
+        order.setGuestCity(request.getCity());
+        order.setGuestCountry(request.getCountry());
+
         order.setCreatedAt(LocalDateTime.now());
         order.setStatus(OrderStatus.NEW);
 
@@ -85,30 +88,29 @@ public class OrderService {
         List<OrderItem> items = new ArrayList<>();
 
         for (GuestOrderItem dto : request.getCartItems()) {
+            Product product = productRepository.findById(dto.getProductId())
+                    .orElseThrow(() -> new RuntimeException("Товар не найден: ID=" + dto.getProductId()));
 
-            Product product = productRepository.findById(dto.productId)
-                    .orElseThrow(() -> new RuntimeException("Товар не найден"));
-
-            if (product.getStock() < dto.quantity) {
-                throw new RuntimeException("Недостаточно товара");
+            if (product.getStock() < dto.getQuantity()) {
+                throw new RuntimeException("Недостаточно товара: " + product.getName());
             }
+
+            // Уменьшаем остаток
+            product.setStock(product.getStock() - dto.getQuantity());
+            productRepository.save(product); // ← сохраняем изменения
 
             OrderItem item = new OrderItem();
             item.setOrder(order);
             item.setProduct(product);
-            item.setQuantity(dto.quantity);
+            item.setQuantity(dto.getQuantity());
+            item.setPriceAtOrder(product.getPrice());
 
-            BigDecimal itemTotal = product.getPrice()
-                    .multiply(BigDecimal.valueOf(dto.quantity));
-
-            total = total.add(itemTotal);
+            total = total.add(product.getPrice().multiply(BigDecimal.valueOf(dto.getQuantity())));
             items.add(item);
-
-            product.setStock(product.getStock() - dto.quantity);
         }
 
-        order.setItems(items);
         order.setTotalPrice(total);
+        order.setItems(items);
 
         return orderRepository.save(order);
     }

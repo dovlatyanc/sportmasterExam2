@@ -1,10 +1,10 @@
 package com.shop.sportmaster.dto;
 
-import com.shop.sportmaster.model.GuestOrderItem;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.util.List;
-import jakarta.validation.constraints.*;
+
 @Data
 public class GuestOrderRequest {
 
@@ -25,6 +25,5 @@ public class GuestOrderRequest {
     private String country;
 
     @NotEmpty(message = "Список товаров не может быть пустым")
-    @NotNull(message = "Список товаров обязателен")
-    private List<GuestOrderItem> cartItems; // лучше "cartItems", чем просто "items"
+    private List<GuestOrderItem> cartItems;
 }

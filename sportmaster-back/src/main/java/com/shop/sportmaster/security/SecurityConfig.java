@@ -29,14 +29,19 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/profile").authenticated()
-                        .requestMatchers( "/categories",
-                                "/categories/**",
-                                "/products/**",
-                                "/auth/**"
-                        ).permitAll()
 
+                        .requestMatchers(HttpMethod.POST, "/orders/guest").permitAll()
+                        .requestMatchers("/auth/**").permitAll()
+
+                        .requestMatchers(
+                                "/categories",
+                                "/categories/**",
+                                "/products/**"
+                        ).permitAll()
+                        .requestMatchers("/profile").authenticated()
+                        .requestMatchers("/orders").authenticated()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
+
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form.disable())

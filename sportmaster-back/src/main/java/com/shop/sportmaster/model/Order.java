@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
 @Entity
 @Table(name = "orders")
 @Getter
@@ -21,17 +22,23 @@ public class Order {
     private Long id;
 
     @ManyToOne
-    private User user;
+    private User user; // null для гостей
 
-    private LocalDateTime createdAt;
+    // Данные гостя
+    private String guestFullName;
+    private String guestEmail;
+    private String guestPhone;
+    private String guestCity;
+    private String guestCountry;
+
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     @Enumerated(EnumType.STRING)
-    private OrderStatus status;
+    private OrderStatus status = OrderStatus.NEW;
 
     private BigDecimal totalPrice;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
-    private List<OrderItem> items;
+    private List<OrderItem> items = new ArrayList<>();
 }
-
