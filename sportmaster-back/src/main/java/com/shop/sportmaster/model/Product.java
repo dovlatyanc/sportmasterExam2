@@ -1,6 +1,7 @@
 
 package com.shop.sportmaster.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -38,7 +39,11 @@ public class Product {
     @Column(nullable = false)
     private int stock;
 
+
     @ManyToOne(fetch = FetchType.LAZY)
+
+
     @JoinColumn(name = "category_id", nullable = false, foreignKey = @ForeignKey(name = "fk_product_category"))
+    @JsonIgnore
     private Category category;
 }
